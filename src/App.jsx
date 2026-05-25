@@ -1,28 +1,35 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+
 import "./App.css";
 
-function App(){
+import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
+import ExpertForm from "./components/ExpertForm";
+import ExpertList from "./components/ExpertList";
+import AuthModal from "./components/AuthModal";
 
-const [experts,setExperts]=useState([]);
-const [filtered,setFiltered]=useState([]);
+function App() {
 
-const [name,setName]=useState("");
-const [skill,setSkill]=useState("");
-const [location,setLocation]=useState("");
+const [experts, setExperts] = useState([]);
+const [filtered, setFiltered] = useState([]);
 
-const [search,setSearch]=useState("");
-const [editId,setEditId]=useState(null);
+const [name, setName] = useState("");
+const [skill, setSkill] = useState("");
+const [location, setLocation] = useState("");
 
-const [showAuth,setShowAuth]=useState(false);
-const [type,setType]=useState("");
+const [search, setSearch] = useState("");
 
-const [email,setEmail]=useState("");
-const [password,setPassword]=useState("");
+const [editId, setEditId] = useState(null);
 
-const fetchExperts=async()=>{
-const res=
-await axios.get(
+const [showAuth, setShowAuth] = useState(false);
+const [type, setType] = useState("");
+
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+
+const fetchExperts = async () => {
+const res = await axios.get(
 "http://localhost:5000/experts"
 );
 
@@ -30,32 +37,33 @@ setExperts(res.data);
 setFiltered(res.data);
 };
 
-useEffect(()=>{
+useEffect(() => {
 fetchExperts();
-},[]);
+}, []);
 
-const saveExpert=async()=>{
+const saveExpert = async () => {
 
-if(!name||!skill||!location){
+if (!name || !skill || !location) {
 alert("Fill all fields");
 return;
 }
 
-if(editId){
+if (editId) {
 
 await axios.put(
 `http://localhost:5000/experts/${editId}`,
-{name,skill,location}
+{name, skill, location}
 );
 
 setEditId(null);
 
-}else{
+} else {
 
 await axios.post(
 "http://localhost:5000/experts",
-{name,skill,location}
+{name, skill, location}
 );
+
 }
 
 setName("");
@@ -65,92 +73,113 @@ setLocation("");
 fetchExperts();
 };
 
-const deleteExpert=async(id)=>{
+const deleteExpert = async (id) => {
 await axios.delete(
 `http://localhost:5000/experts/${id}`
 );
+
 fetchExperts();
 };
 
-const editExpert=(expert)=>{
+const editExpert = (expert) => {
 setName(expert.name);
 setSkill(expert.skill);
 setLocation(expert.location);
 setEditId(expert._id);
 };
 
-const searchExpert=()=>{
-const result=
-experts.filter((e)=>
+const searchExpert = () => {
+
+const result = experts.filter((e) =>
 e.location
 .toLowerCase()
-.includes(
-search.toLowerCase()
-)
+.includes(search.toLowerCase())
 );
 
 setFiltered(result);
 };
 
-const validate=()=>{
+const openLogin = () => {
+setType("Login");
+setShowAuth(true);
+};
 
-const regex=/\S+@\S+\.\S+/;
+const openSignup = () => {
+setType("Signup");
+setShowAuth(true);
+};
 
-if(!regex.test(email)){
+const close = () => {
+setShowAuth(false);
+};
+
+const validate = () => {
+
+const regex = /\S+@\S+\.\S+/;
+
+if (!regex.test(email)) {
 alert("Invalid Email");
 return;
 }
 
-if(password.length<6){
+if (password.length < 6) {
 alert("Password minimum 6");
 return;
 }
 
-alert(type+" Success");
-setShowAuth(false);
+alert(type + " Success");
+close();
 };
 
-return(
+return (
 <>
-<header>
-<h1>HirePoint</h1>
 
-<nav>
-<a href="#home">Home</a>
-<a href="#about">About</a>
-<a href="#features">Features</a>
-<a href="#footer">Contact</a>
-</nav>
+<Navbar
+openLogin={openLogin}
+openSignup={openSignup}
+/>
 
-<div>
-<button onClick={()=>{
-setType("Login");
-setShowAuth(true);
-}}>
-Login
-</button>
+<Hero />
 
-<button onClick={()=>{
-setType("Signup");
-setShowAuth(true);
-}}>
-Sign Up
-</button>
-</div>
-</header>
-
-<section className="hero" id="home">
-<h2>Hire Nearby Experts</h2>
-<p>Find professionals instantly</p>
-</section>
+{/* ABOUT */}
 
 <section id="about">
+
 <h2>About HirePoint</h2>
+
+<p>
+HirePoint is a smart expert hiring platform
+that connects users with nearby skilled
+professionals quickly and securely.
+</p>
+
 </section>
 
+{/* FEATURES */}
+
 <section id="features">
+
 <h2>Features</h2>
+
+<div className="expert">
+Smart Location Search
+</div>
+
+<div className="expert">
+Secure Login Validation
+</div>
+
+<div className="expert">
+Add / Edit / Delete Experts
+</div>
+
+<div className="expert">
+Fast Professional Hiring
+</div>
+
 </section>
+
+{/* SEARCH */}
 
 <section>
 
@@ -161,111 +190,51 @@ setSearch(e.target.value)}
 />
 
 <button onClick={searchExpert}>
-Search
+Search Expert
 </button>
 
 </section>
 
-<section>
+{/* ADD EXPERT */}
 
-<input
-placeholder="Name"
-value={name}
-onChange={(e)=>
-setName(e.target.value)}
+<ExpertForm
+name={name}
+skill={skill}
+location={location}
+setName={setName}
+setSkill={setSkill}
+setLocation={setLocation}
+saveExpert={saveExpert}
+editId={editId}
 />
 
-<input
-placeholder="Skill"
-value={skill}
-onChange={(e)=>
-setSkill(e.target.value)}
+{/* LIST */}
+
+<ExpertList
+filtered={filtered}
+editExpert={editExpert}
+deleteExpert={deleteExpert}
 />
-
-<input
-placeholder="Location"
-value={location}
-onChange={(e)=>
-setLocation(e.target.value)}
-/>
-
-<button onClick={saveExpert}>
-{editId?"Update":"Add"}
-</button>
-
-{
-filtered.length===0
-?
-<h2>No Experts Found</h2>
-:
-filtered.map((expert)=>(
-
-<div
-className="expert"
-key={expert._id}
->
-
-<h3>{expert.name}</h3>
-<p>{expert.skill}</p>
-<p>{expert.location}</p>
-
-<button
-onClick={()=>
-editExpert(expert)
-}>
-Edit
-</button>
-
-<button
-onClick={()=>
-deleteExpert(
-expert._id
-)
-}>
-Delete
-</button>
-
-</div>
-
-))
-}
-
-</section>
 
 <footer id="footer">
-Contact HirePoint
+<h2>HirePoint</h2>
+<p>Professional Hiring Platform</p>
 </footer>
 
 {
-showAuth&&(
-<div className="modal">
-
-<div className="modalBox">
-
-<input
-placeholder="Email"
-onChange={(e)=>
-setEmail(e.target.value)}
+showAuth && (
+<AuthModal
+type={type}
+close={close}
+validate={validate}
+setEmail={setEmail}
+setPassword={setPassword}
 />
-
-<input
-type="password"
-placeholder="Password"
-onChange={(e)=>
-setPassword(e.target.value)}
-/>
-
-<button onClick={validate}>
-Submit
-</button>
-
-</div>
-</div>
 )
 }
 
 </>
-)
+);
 }
 
 export default App;
